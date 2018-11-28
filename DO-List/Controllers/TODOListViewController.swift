@@ -12,14 +12,14 @@ class TODOListViewController: UITableViewController {
     
     
     let defs = UserDefaults.standard
-    var itemArray: [String] = [String]()
-    
+    var itemArray = [todoItem]()
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("todoItems.plist")
+    var testItem = todoItem(text: "Test")
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        if let items = defs.array(forKey: "TodoListArray") as? [String]{
-            itemArray = items
-        }
+        loadData()
+        tableView.reloadData()
     }
     
     //MARK - TableView Data Methods
@@ -30,7 +30,9 @@ class TODOListViewController: UITableViewController {
         let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
         
         //set text value of the cell to required item (currently from array)
-        cell.textLabel?.text = itemArray[indexPath.row]
+        let currItem = itemArray[indexPath.row]
+        cell.textLabel?.text = currItem.title
+        cell.accessoryType = currItem.done ? .checkmark : .none
         return cell
         
     }
@@ -45,17 +47,11 @@ class TODOListViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
         //debug current cell clicked
-        print(itemArray[indexPath.row])
-        
-        //add or remove checkmarks
-        if tableView.cellForRow(at: indexPath)?.accessoryType == .checkmark{
-            tableView.cellForRow(at: indexPath)?.accessoryType = .none
-        }else{
-            tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
-        }
-        
+        itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         //unhighlight the cell after press
         tableView.deselectRow(at: indexPath, animated: true)
+        saveItems()
+        tableView.reloadData()
     }
     
     //MARK - Add new Items to list
@@ -68,13 +64,13 @@ class TODOListViewController: UITableViewController {
         //set up the alert
         let alert = UIAlertController(title: "Add new TODO Item", message: "", preferredStyle: .alert)
         let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
-            
             //check if the text field is blank
             if textField.text != nil{
                 
                 //if not add item to the array and update the tableView
-                self.itemArray.append(textField.text!)
-                self.defs.set(self.itemArray, forKey: "TodoListArray")
+                let newItem: todoItem = todoItem(text: textField.text!)
+                self.itemArray.append(newItem)
+                self.saveItems()
                 self.tableView.reloadData()
             }
         }
@@ -90,6 +86,26 @@ class TODOListViewController: UITableViewController {
         //add the action to the alert and present the alert
         alert.addAction(action)
         present(alert, animated: true, completion: nil)
+    }
+    
+    func saveItems(){
+        let encoder = PropertyListEncoder()
+        do{
+            let data = try encoder.encode(itemArray)
+            try data.write(to: dataFilePath!)
+        }catch{
+            print("Error!")
+        }
+    }
+    
+    func loadData(){
+        let decoder = PropertyListDecoder()
+        do{
+            let data = try Data(contentsOf: dataFilePath!)
+            itemArray = try decoder.decode([todoItem].self, from: data)
+        }catch{
+            
+        }
     }
 }
 
