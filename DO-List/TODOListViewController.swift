@@ -10,16 +10,23 @@ import UIKit
 
 class TODOListViewController: UITableViewController {
     
-    var itemArray: [String] = ["Christmas Shopping","Food Shopping","Coursework","Job Applications"]
+    
+    let defs = UserDefaults.standard
+    var itemArray: [String] = [String]()
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        if let items = defs.array(forKey: "TodoListArray") as? [String]{
+            itemArray = items
+        }
     }
     
     //MARK - TableView Data Methods
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        //pull the default cell out of the storyboard
+        //pull the default cell out of the View
         let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
         
         //set text value of the cell to required item (currently from array)
@@ -67,6 +74,7 @@ class TODOListViewController: UITableViewController {
                 
                 //if not add item to the array and update the tableView
                 self.itemArray.append(textField.text!)
+                self.defs.set(self.itemArray, forKey: "TodoListArray")
                 self.tableView.reloadData()
             }
         }
