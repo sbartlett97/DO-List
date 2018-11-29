@@ -13,9 +13,7 @@ class TODOListViewController: UITableViewController {
     
     let defs = UserDefaults.standard
     var itemArray = [todoItem]()
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("todoItems.plist")
-    var testItem = todoItem(text: "Test")
-    
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("todoItems.plist")    
     override func viewDidLoad() {
         super.viewDidLoad()
         loadData()
