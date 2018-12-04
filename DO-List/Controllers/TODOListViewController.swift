@@ -46,15 +46,26 @@ class TODOListViewController: UITableViewController{
     //MARK - TableView Delegate Methods
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
         //debug current cell clicked
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
-        
         //unhighlight the cell after press
         tableView.deselectRow(at: indexPath, animated: true)
-        
         saveItems()
     }
+    
+//    override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+//        let deleteAction = self.contextualDeleteAction(forRowAtIndexPath: indexPath)
+//        let swipeActions = UISwipeActionsConfiguration(actions: [deleteAction])
+//        return swipeActions
+//    }
+//    
+//    func contextualDeleteAction(forRowAtIndexPath indexPath: IndexPath) -> UIContextualAction{
+//        let item = itemArray[indexPath.row]
+//        let action = UIContextualAction(style: .normal, title: "Delete") { (context, view, nil) in
+//            self.deleteItem(item: item, rowIndex: indexPath.row)
+//        }
+//        return action
+//    }
     
     //MARK - Add new Items to list
     
@@ -118,8 +129,8 @@ class TODOListViewController: UITableViewController{
     }
     
     func deleteItem(item: TodoItem, rowIndex: Int){
-        context.delete(item)
-        itemArray.remove(at: rowIndex)
+            context.delete(item)
+            itemArray.remove(at: rowIndex)
     }
     
 
