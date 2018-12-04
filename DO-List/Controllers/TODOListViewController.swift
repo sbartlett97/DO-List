@@ -73,7 +73,6 @@ class TODOListViewController: UITableViewController{
                 newItem.done = false
                 self.itemArray.append(newItem)
                 self.saveItems()
-                self.tableView.reloadData()
             }
         }
         
@@ -96,6 +95,7 @@ class TODOListViewController: UITableViewController{
         }catch{
             print("Error saving context with error \(error)")
         }
+        tableView.reloadData()
     }
     
     func loadData(with request: NSFetchRequest<TodoItem> = TodoItem.fetchRequest()){
@@ -104,6 +104,7 @@ class TODOListViewController: UITableViewController{
         }catch{
             print("Error fetching data \(error)")
         }
+        tableView.reloadData()
     }
     
     func deleteItem(item: TodoItem, rowIndex: Int){
@@ -119,7 +120,18 @@ extension TODOListViewController : UISearchBarDelegate{
         let request: NSFetchRequest<TodoItem> = TodoItem.fetchRequest()
             request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
             request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
-        loadData(with: request);
+        loadData(with: request)
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchBar.text?.count == 0{
+            loadData()
+            
+            DispatchQueue.main.async{
+              searchBar.resignFirstResponder()
+            }
+            
+        }
     }
 }
 
