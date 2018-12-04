@@ -7,15 +7,16 @@
 //
 
 import UIKit
+import CoreData
 
-class TODOListViewController: UITableViewController {
+class TODOListViewController: UITableViewController{
     
-    
-    let defs = UserDefaults.standard
-    var itemArray = [todoItem]()
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("todoItems.plist")    
+    var itemArray: [TodoItem] = [TodoItem]()
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         loadData()
         tableView.reloadData()
     }
@@ -46,10 +47,11 @@ class TODOListViewController: UITableViewController {
         
         //debug current cell clicked
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
+        
         //unhighlight the cell after press
         tableView.deselectRow(at: indexPath, animated: true)
+        
         saveItems()
-        tableView.reloadData()
     }
     
     //MARK - Add new Items to list
@@ -66,7 +68,9 @@ class TODOListViewController: UITableViewController {
             if textField.text != nil{
                 
                 //if not add item to the array and update the tableView
-                let newItem: todoItem = todoItem(text: textField.text!)
+                let newItem = TodoItem(context: self.context)
+                newItem.title = textField.text!
+                newItem.done = false
                 self.itemArray.append(newItem)
                 self.saveItems()
                 self.tableView.reloadData()
@@ -87,23 +91,35 @@ class TODOListViewController: UITableViewController {
     }
     
     func saveItems(){
-        let encoder = PropertyListEncoder()
         do{
-            let data = try encoder.encode(itemArray)
-            try data.write(to: dataFilePath!)
+           try context.save()
         }catch{
-            print("Error!")
+            print("Error saving context with error \(error)")
         }
     }
     
-    func loadData(){
-        let decoder = PropertyListDecoder()
+    func loadData(with request: NSFetchRequest<TodoItem> = TodoItem.fetchRequest()){
         do{
-            let data = try Data(contentsOf: dataFilePath!)
-            itemArray = try decoder.decode([todoItem].self, from: data)
+            itemArray = try context.fetch(request)
         }catch{
-            
+            print("Error fetching data \(error)")
         }
+    }
+    
+    func deleteItem(item: TodoItem, rowIndex: Int){
+        context.delete(item)
+        itemArray.remove(at: rowIndex)
+    }
+    
+
+}
+
+extension TODOListViewController : UISearchBarDelegate{
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        let request: NSFetchRequest<TodoItem> = TodoItem.fetchRequest()
+            request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+            request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+        loadData(with: request);
     }
 }
 
